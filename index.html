@@ -1,24 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOFA-2 Score Calculator</title>
-    <meta name="description" content="Sequential Organ Failure Assessment (SOFA-2) Score Calculator">
+    <title>Калькулятор SOFA-2</title>
+    <meta name="description" content="Калькулятор оценки последовательной органной недостаточности (SOFA-2)">
     <meta name="theme-color" content="#007bff">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --score-0: #ffffff;
-            --score-1: #28a745;
-            --score-2: #ffc107;
-            --score-3: #dc3545;
-            --score-4: #8b4513;
             --primary: #007bff;
             --light: #f8f9fa;
             --dark: #343a40;
             --border: #dee2e6;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
         }
         
         * {
@@ -207,34 +205,24 @@
             border-radius: 20px;
             min-width: 40px;
             text-align: center;
+            background-color: #e9ecef;
+            color: #333;
+            border: 1px solid #ced4da;
         }
         
-        .score-0 { background-color: var(--score-0); color: #333; border: 1px solid #ccc; }
-        .score-1 { background-color: var(--score-1); color: white; }
-        .score-2 { background-color: var(--score-2); color: #333; }
-        .score-3 { background-color: var(--score-3); color: white; }
-        .score-4 { background-color: var(--score-4); color: white; }
-        
-        .score-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 25px;
-            padding-top: 15px;
-            border-top: 1px solid var(--border);
+        .score-critical {
+            background-color: var(--danger);
+            color: white;
         }
         
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.85rem;
+        .score-high {
+            background-color: var(--warning);
+            color: #333;
         }
         
-        .legend-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 3px;
+        .score-medium {
+            background-color: var(--success);
+            color: white;
         }
         
         .reset-btn {
@@ -315,18 +303,39 @@
         .hidden {
             display: none !important;
         }
+        
+        .score-interpretation {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .interpretation-item {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .interpretation-bullet {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
     <header>
         <div class="header-content">
             <div>
-                <h1><i class="fas fa-calculator"></i> SOFA-2 Score Calculator</h1>
-                <p class="subtitle">Sequential Organ Failure Assessment Score • JAMA 2025</p>
+                <h1><i class="fas fa-calculator"></i> Калькулятор SOFA-2</h1>
+                <p class="subtitle">Оценка последовательной органной недостаточности • JAMA 2025</p>
             </div>
             <div class="pwa-install-container">
                 <button id="installBtn" class="install-btn hidden">
-                    <i class="fas fa-download"></i> Install App
+                    <i class="fas fa-download"></i> Установить приложение
                 </button>
             </div>
         </div>
@@ -335,161 +344,161 @@
     <div class="main-container">
         <section class="calculator-section">
             <div class="instructions">
-                <h3><i class="fas fa-info-circle"></i> Instructions</h3>
+                <h3><i class="fas fa-info-circle"></i> Инструкция по использованию</h3>
                 <ul>
-                    <li>Enter values for each organ system below. The total SOFA-2 score (0-24) will be calculated automatically.</li>
-                    <li>For missing values at day 1, score as 0 points. For sequential scoring after day 1, carry forward the last observation.</li>
-                    <li>Color coding: <span class="score-1" style="padding: 2px 5px;">1 point</span> <span class="score-2" style="padding: 2px 5px;">2 points</span> <span class="score-3" style="padding: 2px 5px;">3 points</span> <span class="score-4" style="padding: 2px 5px;">4 points</span></li>
+                    <li>Введите значения для каждой системы органов. Общий балл SOFA-2 (0-24) будет рассчитан автоматически.</li>
+                    <li>Для пропущенных значений в 1-й день оценивайте как 0 баллов. Для последовательной оценки после 1-го дня используйте последнее наблюдение.</li>
+                    <li>Баллы SOFA-2: 0 баллов (норма) до 4 баллов (тяжелая недостаточность) для каждой системы.</li>
                 </ul>
             </div>
             
-            <!-- Respiratory System -->
+            <!-- Дыхательная система -->
             <div class="organ-system">
                 <div class="system-title">
-                    <span><i class="fas fa-lungs"></i> Respiratory System</span>
-                    <span id="respiratory-score" class="organ-score score-0">0</span>
+                    <span><i class="fas fa-lungs"></i> Дыхательная система</span>
+                    <span id="respiratory-score" class="organ-score">0</span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="oxygenation">PaO₂:FiO₂ ratio (mm Hg) or SpO₂:FiO₂ ratio*</label>
-                    <input type="number" id="oxygenation" min="0" step="1" placeholder="e.g., 300">
-                    <div class="info-text">*Use SpO₂:FiO₂ only when PaO₂:FiO₂ unavailable and SpO₂ &lt; 98%</div>
+                    <label for="oxygenation">Соотношение PaO₂:FiO₂ (мм рт.ст.) или SpO₂:FiO₂*</label>
+                    <input type="number" id="oxygenation" min="0" step="1" placeholder="например, 300">
+                    <div class="info-text">*Используйте SpO₂:FiO₂ только если PaO₂:FiO₂ недоступно и SpO₂ < 98%</div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="respiratory-support">Advanced Ventilatory Support</label>
+                    <label for="respiratory-support">Респираторная поддержка</label>
                     <select id="respiratory-support">
-                        <option value="none">None</option>
-                        <option value="high-flow">High-flow nasal cannula</option>
-                        <option value="cpap">CPAP/BiPAP/NIV</option>
-                        <option value="invasive">Invasive mechanical ventilation</option>
-                        <option value="ecmo-resp">ECMO for respiratory failure</option>
+                        <option value="none">Нет</option>
+                        <option value="high-flow">Высокопоточная назальная кислородотерапия</option>
+                        <option value="cpap">CPAP/BiPAP/НИВЛ</option>
+                        <option value="invasive">ИВЛ</option>
+                        <option value="ecmo-resp">ЭКМО при дыхательной недостаточности</option>
                     </select>
-                    <div class="info-text">Required to score 3-4 points if PaO₂:FiO₂ ≤ 200 mm Hg</div>
+                    <div class="info-text">Требуется для оценки 3-4 баллов при PaO₂:FiO₂ ≤ 200 мм рт.ст.</div>
                 </div>
             </div>
             
-            <!-- Coagulation System -->
+            <!-- Система коагуляции -->
             <div class="organ-system">
                 <div class="system-title">
-                    <span><i class="fas fa-tint"></i> Coagulation</span>
-                    <span id="coagulation-score" class="organ-score score-0">0</span>
+                    <span><i class="fas fa-tint"></i> Система коагуляции</span>
+                    <span id="coagulation-score" class="organ-score">0</span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="platelets">Platelets (×10³/µL)</label>
-                    <input type="number" id="platelets" min="0" step="1" placeholder="e.g., 150">
+                    <label for="platelets">Тромбоциты (×10³/мкл)</label>
+                    <input type="number" id="platelets" min="0" step="1" placeholder="например, 150">
                 </div>
             </div>
             
-            <!-- Liver System -->
+            <!-- Печень -->
             <div class="organ-system">
                 <div class="system-title">
-                    <span><i class="fas fa-liver"></i> Liver</span>
-                    <span id="liver-score" class="organ-score score-0">0</span>
+                    <span><i class="fas fa-liver"></i> Печень</span>
+                    <span id="liver-score" class="organ-score">0</span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="bilirubin">Bilirubin (mg/dL)</label>
-                    <input type="number" id="bilirubin" min="0" step="0.1" placeholder="e.g., 1.2">
+                    <label for="bilirubin">Билирубин (мг/дл)</label>
+                    <input type="number" id="bilirubin" min="0" step="0.1" placeholder="например, 1.2">
                 </div>
             </div>
             
-            <!-- Cardiovascular System -->
+            <!-- Сердечно-сосудистая система -->
             <div class="organ-system">
                 <div class="system-title">
-                    <span><i class="fas fa-heartbeat"></i> Cardiovascular System</span>
-                    <span id="cardiovascular-score" class="organ-score score-0">0</span>
+                    <span><i class="fas fa-heartbeat"></i> Сердечно-сосудистая система</span>
+                    <span id="cardiovascular-score" class="organ-score">0</span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="map">Mean Arterial Pressure (mm Hg)</label>
-                    <input type="number" id="map" min="0" step="1" placeholder="e.g., 65">
+                    <label for="map">Среднее артериальное давление (мм рт.ст.)</label>
+                    <input type="number" id="map" min="0" step="1" placeholder="например, 65">
                 </div>
                 
                 <div class="form-group">
-                    <label for="vasopressors">Vasopressor Medication</label>
+                    <label for="vasopressors">Вазиопрессорная терапия</label>
                     <select id="vasopressors">
-                        <option value="none">None</option>
-                        <option value="norepinephrine">Norepinephrine</option>
-                        <option value="dopamine">Dopamine</option>
-                        <option value="other">Other vasopressor</option>
+                        <option value="none">Нет</option>
+                        <option value="norepinephrine">Норадреналин</option>
+                        <option value="dopamine">Допамин</option>
+                        <option value="other">Другой вазопрессор</option>
                     </select>
                 </div>
                 
                 <div class="form-group">
-                    <label for="vasopressor-dose">Vasopressor Dose (µg/kg/min)*</label>
-                    <input type="number" id="vasopressor-dose" min="0" step="0.1" placeholder="e.g., 0.1">
-                    <div class="info-text">*Norepinephrine equivalent dose</div>
+                    <label for="vasopressor-dose">Доза вазопрессора (мкг/кг/мин)*</label>
+                    <input type="number" id="vasopressor-dose" min="0" step="0.1" placeholder="например, 0.1">
+                    <div class="info-text">*Эквивалентная доза норадреналина</div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="cardiovascular-support">Mechanical Cardiovascular Support</label>
+                    <label for="cardiovascular-support">Механическая поддержка кровообращения</label>
                     <select id="cardiovascular-support">
-                        <option value="none">None</option>
-                        <option value="va-ecmo">VA-ECMO</option>
-                        <option value="iabp">IABP</option>
-                        <option value="lvad">LVAD</option>
-                        <option value="other-device">Other device</option>
+                        <option value="none">Нет</option>
+                        <option value="va-ecmo">ВА-ЭКМО</option>
+                        <option value="iabp">ВБК</option>
+                        <option value="lvad">ЛЖАД</option>
+                        <option value="other-device">Другое устройство</option>
                     </select>
                 </div>
             </div>
             
-            <!-- Central Nervous System -->
+            <!-- Центральная нервная система -->
             <div class="organ-system">
                 <div class="system-title">
-                    <span><i class="fas fa-brain"></i> Central Nervous System</span>
-                    <span id="cns-score" class="organ-score score-0">0</span>
+                    <span><i class="fas fa-brain"></i> Центральная нервная система</span>
+                    <span id="cns-score" class="organ-score">0</span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="gcs">Glasgow Coma Scale (GCS) Score</label>
+                    <label for="gcs">Шкала комы Глазго (GCS)</label>
                     <input type="number" id="gcs" min="3" max="15" step="1" placeholder="3-15">
                 </div>
                 
                 <div class="form-group">
-                    <label for="sedation">Patient Sedated?</label>
+                    <label for="sedation">Пациент седирован?</label>
                     <select id="sedation">
-                        <option value="no">No</option>
-                        <option value="yes">Yes</option>
+                        <option value="no">Нет</option>
+                        <option value="yes">Да</option>
                     </select>
-                    <div class="info-text">If sedated, use last recorded GCS before sedation</div>
+                    <div class="info-text">При седации используйте последнюю запись GCS до седации</div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="delirium-treatment">Receiving Delirium Treatment?</label>
+                    <label for="delirium-treatment">Получает лечение делирия?</label>
                     <select id="delirium-treatment">
-                        <option value="no">No</option>
-                        <option value="yes">Yes</option>
+                        <option value="no">Нет</option>
+                        <option value="yes">Да</option>
                     </select>
-                    <div class="info-text">If yes, score 1 point even if GCS is 15</div>
+                    <div class="info-text">Если да, оценивается в 1 балл даже при GCS 15</div>
                 </div>
             </div>
             
-            <!-- Renal System -->
+            <!-- Почечная система -->
             <div class="organ-system">
                 <div class="system-title">
-                    <span><i class="fas fa-filter"></i> Renal System</span>
-                    <span id="renal-score" class="organ-score score-0">0</span>
+                    <span><i class="fas fa-filter"></i> Почечная система</span>
+                    <span id="renal-score" class="organ-score">0</span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="creatinine">Creatinine (mg/dL)</label>
-                    <input type="number" id="creatinine" min="0" step="0.1" placeholder="e.g., 1.2">
+                    <label for="creatinine">Креатинин (мг/дл)</label>
+                    <input type="number" id="creatinine" min="0" step="0.1" placeholder="например, 1.2">
                 </div>
                 
                 <div class="form-group">
-                    <label for="urine-output">Urine Output (mL/kg/h)</label>
-                    <input type="number" id="urine-output" min="0" step="0.1" placeholder="e.g., 0.5">
+                    <label for="urine-output">Диурез (мл/кг/ч)</label>
+                    <input type="number" id="urine-output" min="0" step="0.1" placeholder="например, 0.5">
                 </div>
                 
                 <div class="form-group">
-                    <label for="rrt">Renal Replacement Therapy (RRT)</label>
+                    <label for="rrt">Заместительная почечная терапия (ЗПТ)</label>
                     <select id="rrt">
-                        <option value="none">None</option>
-                        <option value="intermittent">Intermittent RRT</option>
-                        <option value="continuous">Continuous RRT</option>
-                        <option value="indicated-not-receiving">Indicated but not receiving</option>
+                        <option value="none">Нет</option>
+                        <option value="intermittent">Интермиттирующая ЗПТ</option>
+                        <option value="continuous">Непрерывная ЗПТ</option>
+                        <option value="indicated-not-receiving">Показана, но не проводится</option>
                     </select>
                 </div>
             </div>
@@ -498,81 +507,78 @@
         <section class="score-section">
             <div class="score-display">
                 <div class="total-score" id="total-score">0</div>
-                <div class="score-label">Total SOFA-2 Score</div>
-                <div class="info-text">Range: 0-24 points</div>
+                <div class="score-label">Общий балл SOFA-2</div>
+                <div class="info-text">Диапазон: 0-24 баллов</div>
             </div>
             
             <div class="score-breakdown">
-                <h3><i class="fas fa-list-alt"></i> Score Breakdown</h3>
+                <h3><i class="fas fa-list-alt"></i> Детализация баллов</h3>
                 
                 <div class="breakdown-item">
-                    <span class="organ-name">Respiratory</span>
-                    <span id="breakdown-respiratory" class="organ-score score-0">0</span>
+                    <span class="organ-name">Дыхательная система</span>
+                    <span id="breakdown-respiratory" class="organ-score">0</span>
                 </div>
                 
                 <div class="breakdown-item">
-                    <span class="organ-name">Coagulation</span>
-                    <span id="breakdown-coagulation" class="organ-score score-0">0</span>
+                    <span class="organ-name">Коагуляция</span>
+                    <span id="breakdown-coagulation" class="organ-score">0</span>
                 </div>
                 
                 <div class="breakdown-item">
-                    <span class="organ-name">Liver</span>
-                    <span id="breakdown-liver" class="organ-score score-0">0</span>
+                    <span class="organ-name">Печень</span>
+                    <span id="breakdown-liver" class="organ-score">0</span>
                 </div>
                 
                 <div class="breakdown-item">
-                    <span class="organ-name">Cardiovascular</span>
-                    <span id="breakdown-cardiovascular" class="organ-score score-0">0</span>
+                    <span class="organ-name">Сердечно-сосудистая</span>
+                    <span id="breakdown-cardiovascular" class="organ-score">0</span>
                 </div>
                 
                 <div class="breakdown-item">
-                    <span class="organ-name">CNS</span>
-                    <span id="breakdown-cns" class="organ-score score-0">0</span>
+                    <span class="organ-name">ЦНС</span>
+                    <span id="breakdown-cns" class="organ-score">0</span>
                 </div>
                 
                 <div class="breakdown-item">
-                    <span class="organ-name">Renal</span>
-                    <span id="breakdown-renal" class="organ-score score-0">0</span>
+                    <span class="organ-name">Почечная</span>
+                    <span id="breakdown-renal" class="organ-score">0</span>
                 </div>
             </div>
             
-            <div class="score-legend">
-                <div class="legend-item">
-                    <div class="legend-color score-0"></div>
-                    <span>0 points</span>
+            <div class="score-interpretation">
+                <h3><i class="fas fa-chart-line"></i> Интерпретация баллов SOFA-2</h3>
+                <div class="interpretation-item">
+                    <div class="interpretation-bullet" style="background-color: var(--success);"></div>
+                    <span><strong>0-5 баллов:</strong> Низкий риск летальности</span>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color score-1"></div>
-                    <span>1 point</span>
+                <div class="interpretation-item">
+                    <div class="interpretation-bullet" style="background-color: var(--warning);"></div>
+                    <span><strong>6-10 баллов:</strong> Умеренный риск летальности (~20-40%)</span>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color score-2"></div>
-                    <span>2 points</span>
+                <div class="interpretation-item">
+                    <div class="interpretation-bullet" style="background-color: var(--danger);"></div>
+                    <span><strong>11-15 баллов:</strong> Высокий риск летальности (~40-60%)</span>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color score-3"></div>
-                    <span>3 points</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color score-4"></div>
-                    <span>4 points</span>
+                <div class="interpretation-item">
+                    <div class="interpretation-bullet" style="background-color: #8b4513;"></div>
+                    <span><strong>16-24 балла:</strong> Очень высокий риск летальности (>60%)</span>
                 </div>
             </div>
             
             <button id="resetBtn" class="reset-btn">
-                <i class="fas fa-redo"></i> Reset All Values
+                <i class="fas fa-redo"></i> Сбросить все значения
             </button>
         </section>
     </div>
     
     <footer class="footer">
-        <p>Based on: Development and Validation of the Sequential Organ Failure Assessment (SOFA)-2 Score. JAMA. 2025;334(23):2090-2103.</p>
-        <p>Copyright © 2025 American Medical Association. All rights reserved.</p>
-        <p>This tool is for educational/clinical use only. Always consult official guidelines.</p>
+        <p>Основано на: Development and Validation of the Sequential Organ Failure Assessment (SOFA)-2 Score. JAMA. 2025;334(23):2090-2103.</p>
+        <p>© 2025 American Medical Association. Все права защищены.</p>
+        <p>Данный инструмент предназначен для образовательных/клинических целей. Всегда консультируйтесь с официальными рекомендациями.</p>
     </footer>
 
     <script>
-        // PWA functionality
+        // PWA функциональность
         let deferredPrompt;
         const installBtn = document.getElementById('installBtn');
         
@@ -589,7 +595,7 @@
             const { outcome } = await deferredPrompt.userChoice;
             
             if (outcome === 'accepted') {
-                installBtn.textContent = 'App Installed!';
+                installBtn.textContent = 'Приложение установлено!';
                 installBtn.disabled = true;
             }
             
@@ -601,25 +607,25 @@
             deferredPrompt = null;
         });
         
-        // Check if app is running in standalone mode
+        // Проверка запуска в режиме standalone
         if (window.matchMedia('(display-mode: standalone)').matches) {
-            console.log('Running in PWA mode');
+            console.log('Запущено в режиме PWA');
         }
         
-        // Service Worker Registration for offline functionality
+        // Регистрация Service Worker для офлайн-функциональности
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').then(registration => {
-                    console.log('ServiceWorker registration successful');
+                    console.log('ServiceWorker успешно зарегистрирован');
                 }).catch(err => {
-                    console.log('ServiceWorker registration failed: ', err);
+                    console.log('Ошибка регистрации ServiceWorker: ', err);
                 });
             });
         }
         
-        // SOFA Score Calculation Logic
+        // Логика расчета баллов SOFA
         function calculateSofaScore() {
-            // Initialize scores
+            // Инициализация баллов
             let respiratoryScore = 0;
             let coagulationScore = 0;
             let liverScore = 0;
@@ -627,7 +633,7 @@
             let cnsScore = 0;
             let renalScore = 0;
             
-            // 1. Respiratory System Calculation
+            // 1. Расчет дыхательной системы
             const oxygenation = parseFloat(document.getElementById('oxygenation').value);
             const respiratorySupport = document.getElementById('respiratory-support').value;
             
@@ -641,14 +647,14 @@
                 } else if (oxygenation > 200) {
                     respiratoryScore = 2;
                 } else if (oxygenation > 120) {
-                    // Need ventilatory support for 3 points
+                    // Требуется респираторная поддержка для 3 баллов
                     if (respiratorySupport !== 'none') {
                         respiratoryScore = 3;
                     } else {
                         respiratoryScore = 2;
                     }
                 } else if (oxygenation <= 120) {
-                    // Need ventilatory support for 4 points
+                    // Требуется респираторная поддержка для 4 баллов
                     if (respiratorySupport !== 'none') {
                         respiratoryScore = 4;
                     } else {
@@ -657,7 +663,7 @@
                 }
             }
             
-            // 2. Coagulation System Calculation
+            // 2. Расчет системы коагуляции
             const platelets = parseFloat(document.getElementById('platelets').value);
             
             if (!isNaN(platelets)) {
@@ -668,7 +674,7 @@
                 else coagulationScore = 4;
             }
             
-            // 3. Liver System Calculation
+            // 3. Расчет печеночной системы
             const bilirubin = parseFloat(document.getElementById('bilirubin').value);
             
             if (!isNaN(bilirubin)) {
@@ -679,13 +685,13 @@
                 else liverScore = 4;
             }
             
-            // 4. Cardiovascular System Calculation
+            // 4. Расчет сердечно-сосудистой системы
             const map = parseFloat(document.getElementById('map').value);
             const vasopressors = document.getElementById('vasopressors').value;
             const vasopressorDose = parseFloat(document.getElementById('vasopressor-dose').value);
             const cardiovascularSupport = document.getElementById('cardiovascular-support').value;
             
-            // Check for mechanical support first
+            // Сначала проверяем механическую поддержку
             if (cardiovascularSupport !== 'none') {
                 cardiovascularScore = 4;
             } else if (vasopressors !== 'none' && !isNaN(vasopressorDose)) {
@@ -694,14 +700,14 @@
                     else if (vasopressorDose <= 40) cardiovascularScore = 3;
                     else cardiovascularScore = 4;
                 } else {
-                    // Norepinephrine or other vasopressor
+                    // Норадреналин или другой вазопрессор
                     if (vasopressorDose <= 0.1) cardiovascularScore = 1;
                     else if (vasopressorDose <= 0.3) cardiovascularScore = 2;
                     else if (vasopressorDose <= 0.5) cardiovascularScore = 3;
                     else cardiovascularScore = 4;
                 }
             } else if (!isNaN(map)) {
-                // Use MAP if no vasopressors
+                // Используем САД если нет вазопрессоров
                 if (map >= 70) cardiovascularScore = 0;
                 else if (map >= 60) cardiovascularScore = 1;
                 else if (map >= 50) cardiovascularScore = 2;
@@ -709,7 +715,7 @@
                 else cardiovascularScore = 4;
             }
             
-            // 5. Central Nervous System Calculation
+            // 5. Расчет центральной нервной системы
             const gcs = parseFloat(document.getElementById('gcs').value);
             const sedation = document.getElementById('sedation').value;
             const deliriumTreatment = document.getElementById('delirium-treatment').value;
@@ -724,17 +730,17 @@
                 else cnsScore = 4;
             }
             
-            // If sedated and no GCS entered, score as 0 per guidelines
+            // Если седация и GCS не введено, оцениваем как 0 согласно рекомендациям
             if (sedation === 'yes' && isNaN(gcs)) {
                 cnsScore = 0;
             }
             
-            // 6. Renal System Calculation
+            // 6. Расчет почечной системы
             const creatinine = parseFloat(document.getElementById('creatinine').value);
             const urineOutput = parseFloat(document.getElementById('urine-output').value);
             const rrt = document.getElementById('rrt').value;
             
-            // Check RRT status first
+            // Сначала проверяем статус ЗПТ
             if (rrt === 'continuous' || rrt === 'intermittent') {
                 renalScore = 4;
             } else if (rrt === 'indicated-not-receiving') {
@@ -748,10 +754,10 @@
             } else if (!isNaN(urineOutput)) {
                 if (urineOutput >= 0.5) renalScore = 0;
                 else if (urineOutput >= 0.3) renalScore = 1;
-                else renalScore = 4; // <0.3 mL/kg/h for >6 hours
+                else renalScore = 4; // <0.3 мл/кг/ч более 6 часов
             }
             
-            // Update all score displays
+            // Обновляем все отображения баллов
             updateScoreDisplay('respiratory', respiratoryScore);
             updateScoreDisplay('coagulation', coagulationScore);
             updateScoreDisplay('liver', liverScore);
@@ -759,64 +765,74 @@
             updateScoreDisplay('cns', cnsScore);
             updateScoreDisplay('renal', renalScore);
             
-            // Calculate and update total score
+            // Рассчитываем и обновляем общий балл
             const totalScore = respiratoryScore + coagulationScore + liverScore + 
                              cardiovascularScore + cnsScore + renalScore;
             
             document.getElementById('total-score').textContent = totalScore;
             
-            // Update breakdown scores
+            // Обновляем детализацию баллов
             document.getElementById('breakdown-respiratory').textContent = respiratoryScore;
-            document.getElementById('breakdown-respiratory').className = `organ-score score-${respiratoryScore}`;
-            
             document.getElementById('breakdown-coagulation').textContent = coagulationScore;
-            document.getElementById('breakdown-coagulation').className = `organ-score score-${coagulationScore}`;
-            
             document.getElementById('breakdown-liver').textContent = liverScore;
-            document.getElementById('breakdown-liver').className = `organ-score score-${liverScore}`;
-            
             document.getElementById('breakdown-cardiovascular').textContent = cardiovascularScore;
-            document.getElementById('breakdown-cardiovascular').className = `organ-score score-${cardiovascularScore}`;
-            
             document.getElementById('breakdown-cns').textContent = cnsScore;
-            document.getElementById('breakdown-cns').className = `organ-score score-${cnsScore}`;
-            
             document.getElementById('breakdown-renal').textContent = renalScore;
-            document.getElementById('breakdown-renal').className = `organ-score score-${renalScore}`;
+            
+            // Добавляем классы для выделения критических значений
+            updateScoreClass('breakdown-respiratory', respiratoryScore);
+            updateScoreClass('breakdown-coagulation', coagulationScore);
+            updateScoreClass('breakdown-liver', liverScore);
+            updateScoreClass('breakdown-cardiovascular', cardiovascularScore);
+            updateScoreClass('breakdown-cns', cnsScore);
+            updateScoreClass('breakdown-renal', renalScore);
         }
         
         function updateScoreDisplay(system, score) {
             const element = document.getElementById(`${system}-score`);
             element.textContent = score;
-            element.className = `organ-score score-${score}`;
         }
         
-        // Add event listeners to all inputs
+        function updateScoreClass(elementId, score) {
+            const element = document.getElementById(elementId);
+            element.className = 'organ-score';
+            
+            if (score >= 3) {
+                element.classList.add('score-critical');
+            } else if (score === 2) {
+                element.classList.add('score-high');
+            } else if (score === 1) {
+                element.classList.add('score-medium');
+            }
+        }
+        
+        // Добавляем обработчики событий для всех полей ввода
         const allInputs = document.querySelectorAll('input, select');
         allInputs.forEach(input => {
             input.addEventListener('input', calculateSofaScore);
             input.addEventListener('change', calculateSofaScore);
         });
         
-        // Reset button functionality
+        // Функциональность кнопки сброса
         document.getElementById('resetBtn').addEventListener('click', function() {
-            // Reset all inputs
+            // Сбрасываем все числовые поля
             document.querySelectorAll('input[type="number"]').forEach(input => {
                 input.value = '';
             });
             
+            // Сбрасываем все выпадающие списки
             document.querySelectorAll('select').forEach(select => {
                 select.selectedIndex = 0;
             });
             
-            // Reset all scores to 0
+            // Сбрасываем все баллы на 0
             calculateSofaScore();
         });
         
-        // Initialize calculation on page load
+        // Инициализация расчета при загрузке страницы
         document.addEventListener('DOMContentLoaded', calculateSofaScore);
         
-        // Create a simple service worker for offline functionality
+        // Создаем простой Service Worker для офлайн-функциональности
         const serviceWorkerCode = `
         self.addEventListener('install', event => {
             event.waitUntil(
@@ -839,11 +855,11 @@
         });
         `;
         
-        // Create manifest file content
+        // Создаем содержимое манифеста
         const manifest = {
-            "name": "SOFA-2 Score Calculator",
-            "short_name": "SOFA-2 Calc",
-            "description": "Sequential Organ Failure Assessment (SOFA-2) Score Calculator",
+            "name": "Калькулятор SOFA-2",
+            "short_name": "SOFA-2 Кальк",
+            "description": "Калькулятор оценки последовательной органной недостаточности (SOFA-2)",
             "start_url": "./",
             "display": "standalone",
             "background_color": "#007bff",
@@ -858,9 +874,7 @@
             ]
         };
         
-        // For demonstration, we'll create these files inline
-        // In a real app, these would be separate files
-        console.log('SOFA-2 Calculator ready. PWA features enabled.');
+        console.log('Калькулятор SOFA-2 готов. Функции PWA включены.');
     </script>
 </body>
 </html>
