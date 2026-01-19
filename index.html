@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOFA-2 Score Calculator</title>
+    <meta name="description" content="Sequential Organ Failure Assessment (SOFA-2) Score Calculator">
+    <meta name="theme-color" content="#007bff">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --score-0: #ffffff;
+            --score-1: #28a745;
+            --score-2: #ffc107;
+            --score-3: #dc3545;
+            --score-4: #8b4513;
+            --primary: #007bff;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --border: #dee2e6;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 10px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), #0056b3);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .install-btn {
+            background: white;
+            color: var(--primary);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .install-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+        
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        @media (min-width: 992px) {
+            .main-container {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+        
+        .calculator-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .score-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 20px;
+        }
+        
+        .system-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border);
+            color: var(--dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .organ-system {
+            margin-bottom: 25px;
+            background: var(--light);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+        
+        .info-text {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .score-display {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .total-score {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--dark);
+            line-height: 1;
+        }
+        
+        .score-label {
+            font-size: 1.2rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .score-breakdown {
+            margin-top: 20px;
+        }
+        
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .organ-name {
+            font-weight: 500;
+        }
+        
+        .organ-score {
+            font-weight: bold;
+            padding: 3px 10px;
+            border-radius: 20px;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .score-0 { background-color: var(--score-0); color: #333; border: 1px solid #ccc; }
+        .score-1 { background-color: var(--score-1); color: white; }
+        .score-2 { background-color: var(--score-2); color: #333; }
+        .score-3 { background-color: var(--score-3); color: white; }
+        .score-4 { background-color: var(--score-4); color: white; }
+        
+        .score-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        
+        .reset-btn {
+            background: var(--dark);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        
+        .reset-btn:hover {
+            background: #23272b;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            font-size: 0.8rem;
+            color: #6c757d;
+            border-top: 1px solid var(--border);
+        }
+        
+        .instructions {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .instructions h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .install-btn {
+                align-self: stretch;
+                justify-content: center;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .total-score {
+                font-size: 3rem;
+            }
+        }
+        
+        /* PWA Install Button Style */
+        .pwa-install-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div>
+                <h1><i class="fas fa-calculator"></i> SOFA-2 Score Calculator</h1>
+                <p class="subtitle">Sequential Organ Failure Assessment Score • JAMA 2025</p>
+            </div>
+            <div class="pwa-install-container">
+                <button id="installBtn" class="install-btn hidden">
+                    <i class="fas fa-download"></i> Install App
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <div class="main-container">
+        <section class="calculator-section">
+            <div class="instructions">
+                <h3><i class="fas fa-info-circle"></i> Instructions</h3>
+                <ul>
+                    <li>Enter values for each organ system below. The total SOFA-2 score (0-24) will be calculated automatically.</li>
+                    <li>For missing values at day 1, score as 0 points. For sequential scoring after day 1, carry forward the last observation.</li>
+                    <li>Color coding: <span class="score-1" style="padding: 2px 5px;">1 point</span> <span class="score-2" style="padding: 2px 5px;">2 points</span> <span class="score-3" style="padding: 2px 5px;">3 points</span> <span class="score-4" style="padding: 2px 5px;">4 points</span></li>
+                </ul>
+            </div>
+            
+            <!-- Respiratory System -->
+            <div class="organ-system">
+                <div class="system-title">
+                    <span><i class="fas fa-lungs"></i> Respiratory System</span>
+                    <span id="respiratory-score" class="organ-score score-0">0</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="oxygenation">PaO₂:FiO₂ ratio (mm Hg) or SpO₂:FiO₂ ratio*</label>
+                    <input type="number" id="oxygenation" min="0" step="1" placeholder="e.g., 300">
+                    <div class="info-text">*Use SpO₂:FiO₂ only when PaO₂:FiO₂ unavailable and SpO₂ &lt; 98%</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="respiratory-support">Advanced Ventilatory Support</label>
+                    <select id="respiratory-support">
+                        <option value="none">None</option>
+                        <option value="high-flow">High-flow nasal cannula</option>
+                        <option value="cpap">CPAP/BiPAP/NIV</option>
+                        <option value="invasive">Invasive mechanical ventilation</option>
+                        <option value="ecmo-resp">ECMO for respiratory failure</option>
+                    </select>
+                    <div class="info-text">Required to score 3-4 points if PaO₂:FiO₂ ≤ 200 mm Hg</div>
+                </div>
+            </div>
+            
+            <!-- Coagulation System -->
+            <div class="organ-system">
+                <div class="system-title">
+                    <span><i class="fas fa-tint"></i> Coagulation</span>
+                    <span id="coagulation-score" class="organ-score score-0">0</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="platelets">Platelets (×10³/µL)</label>
+                    <input type="number" id="platelets" min="0" step="1" placeholder="e.g., 150">
+                </div>
+            </div>
+            
+            <!-- Liver System -->
+            <div class="organ-system">
+                <div class="system-title">
+                    <span><i class="fas fa-liver"></i> Liver</span>
+                    <span id="liver-score" class="organ-score score-0">0</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="bilirubin">Bilirubin (mg/dL)</label>
+                    <input type="number" id="bilirubin" min="0" step="0.1" placeholder="e.g., 1.2">
+                </div>
+            </div>
+            
+            <!-- Cardiovascular System -->
+            <div class="organ-system">
+                <div class="system-title">
+                    <span><i class="fas fa-heartbeat"></i> Cardiovascular System</span>
+                    <span id="cardiovascular-score" class="organ-score score-0">0</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="map">Mean Arterial Pressure (mm Hg)</label>
+                    <input type="number" id="map" min="0" step="1" placeholder="e.g., 65">
+                </div>
+                
+                <div class="form-group">
+                    <label for="vasopressors">Vasopressor Medication</label>
+                    <select id="vasopressors">
+                        <option value="none">None</option>
+                        <option value="norepinephrine">Norepinephrine</option>
+                        <option value="dopamine">Dopamine</option>
+                        <option value="other">Other vasopressor</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="vasopressor-dose">Vasopressor Dose (µg/kg/min)*</label>
+                    <input type="number" id="vasopressor-dose" min="0" step="0.1" placeholder="e.g., 0.1">
+                    <div class="info-text">*Norepinephrine equivalent dose</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cardiovascular-support">Mechanical Cardiovascular Support</label>
+                    <select id="cardiovascular-support">
+                        <option value="none">None</option>
+                        <option value="va-ecmo">VA-ECMO</option>
+                        <option value="iabp">IABP</option>
+                        <option value="lvad">LVAD</option>
+                        <option value="other-device">Other device</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Central Nervous System -->
+            <div class="organ-system">
+                <div class="system-title">
+                    <span><i class="fas fa-brain"></i> Central Nervous System</span>
+                    <span id="cns-score" class="organ-score score-0">0</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="gcs">Glasgow Coma Scale (GCS) Score</label>
+                    <input type="number" id="gcs" min="3" max="15" step="1" placeholder="3-15">
+                </div>
+                
+                <div class="form-group">
+                    <label for="sedation">Patient Sedated?</label>
+                    <select id="sedation">
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                    </select>
+                    <div class="info-text">If sedated, use last recorded GCS before sedation</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="delirium-treatment">Receiving Delirium Treatment?</label>
+                    <select id="delirium-treatment">
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                    </select>
+                    <div class="info-text">If yes, score 1 point even if GCS is 15</div>
+                </div>
+            </div>
+            
+            <!-- Renal System -->
+            <div class="organ-system">
+                <div class="system-title">
+                    <span><i class="fas fa-filter"></i> Renal System</span>
+                    <span id="renal-score" class="organ-score score-0">0</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="creatinine">Creatinine (mg/dL)</label>
+                    <input type="number" id="creatinine" min="0" step="0.1" placeholder="e.g., 1.2">
+                </div>
+                
+                <div class="form-group">
+                    <label for="urine-output">Urine Output (mL/kg/h)</label>
+                    <input type="number" id="urine-output" min="0" step="0.1" placeholder="e.g., 0.5">
+                </div>
+                
+                <div class="form-group">
+                    <label for="rrt">Renal Replacement Therapy (RRT)</label>
+                    <select id="rrt">
+                        <option value="none">None</option>
+                        <option value="intermittent">Intermittent RRT</option>
+                        <option value="continuous">Continuous RRT</option>
+                        <option value="indicated-not-receiving">Indicated but not receiving</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+        
+        <section class="score-section">
+            <div class="score-display">
+                <div class="total-score" id="total-score">0</div>
+                <div class="score-label">Total SOFA-2 Score</div>
+                <div class="info-text">Range: 0-24 points</div>
+            </div>
+            
+            <div class="score-breakdown">
+                <h3><i class="fas fa-list-alt"></i> Score Breakdown</h3>
+                
+                <div class="breakdown-item">
+                    <span class="organ-name">Respiratory</span>
+                    <span id="breakdown-respiratory" class="organ-score score-0">0</span>
+                </div>
+                
+                <div class="breakdown-item">
+                    <span class="organ-name">Coagulation</span>
+                    <span id="breakdown-coagulation" class="organ-score score-0">0</span>
+                </div>
+                
+                <div class="breakdown-item">
+                    <span class="organ-name">Liver</span>
+                    <span id="breakdown-liver" class="organ-score score-0">0</span>
+                </div>
+                
+                <div class="breakdown-item">
+                    <span class="organ-name">Cardiovascular</span>
+                    <span id="breakdown-cardiovascular" class="organ-score score-0">0</span>
+                </div>
+                
+                <div class="breakdown-item">
+                    <span class="organ-name">CNS</span>
+                    <span id="breakdown-cns" class="organ-score score-0">0</span>
+                </div>
+                
+                <div class="breakdown-item">
+                    <span class="organ-name">Renal</span>
+                    <span id="breakdown-renal" class="organ-score score-0">0</span>
+                </div>
+            </div>
+            
+            <div class="score-legend">
+                <div class="legend-item">
+                    <div class="legend-color score-0"></div>
+                    <span>0 points</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color score-1"></div>
+                    <span>1 point</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color score-2"></div>
+                    <span>2 points</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color score-3"></div>
+                    <span>3 points</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color score-4"></div>
+                    <span>4 points</span>
+                </div>
+            </div>
+            
+            <button id="resetBtn" class="reset-btn">
+                <i class="fas fa-redo"></i> Reset All Values
+            </button>
+        </section>
+    </div>
+    
+    <footer class="footer">
+        <p>Based on: Development and Validation of the Sequential Organ Failure Assessment (SOFA)-2 Score. JAMA. 2025;334(23):2090-2103.</p>
+        <p>Copyright © 2025 American Medical Association. All rights reserved.</p>
+        <p>This tool is for educational/clinical use only. Always consult official guidelines.</p>
+    </footer>
+
+    <script>
+        // PWA functionality
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.classList.remove('hidden');
+        });
+        
+        installBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                installBtn.textContent = 'App Installed!';
+                installBtn.disabled = true;
+            }
+            
+            deferredPrompt = null;
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            installBtn.classList.add('hidden');
+            deferredPrompt = null;
+        });
+        
+        // Check if app is running in standalone mode
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('Running in PWA mode');
+        }
+        
+        // Service Worker Registration for offline functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(registration => {
+                    console.log('ServiceWorker registration successful');
+                }).catch(err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+        
+        // SOFA Score Calculation Logic
+        function calculateSofaScore() {
+            // Initialize scores
+            let respiratoryScore = 0;
+            let coagulationScore = 0;
+            let liverScore = 0;
+            let cardiovascularScore = 0;
+            let cnsScore = 0;
+            let renalScore = 0;
+            
+            // 1. Respiratory System Calculation
+            const oxygenation = parseFloat(document.getElementById('oxygenation').value);
+            const respiratorySupport = document.getElementById('respiratory-support').value;
+            
+            if (!isNaN(oxygenation)) {
+                if (respiratorySupport === 'ecmo-resp') {
+                    respiratoryScore = 4;
+                } else if (oxygenation > 300) {
+                    respiratoryScore = 0;
+                } else if (oxygenation > 250) {
+                    respiratoryScore = 1;
+                } else if (oxygenation > 200) {
+                    respiratoryScore = 2;
+                } else if (oxygenation > 120) {
+                    // Need ventilatory support for 3 points
+                    if (respiratorySupport !== 'none') {
+                        respiratoryScore = 3;
+                    } else {
+                        respiratoryScore = 2;
+                    }
+                } else if (oxygenation <= 120) {
+                    // Need ventilatory support for 4 points
+                    if (respiratorySupport !== 'none') {
+                        respiratoryScore = 4;
+                    } else {
+                        respiratoryScore = 2;
+                    }
+                }
+            }
+            
+            // 2. Coagulation System Calculation
+            const platelets = parseFloat(document.getElementById('platelets').value);
+            
+            if (!isNaN(platelets)) {
+                if (platelets >= 150) coagulationScore = 0;
+                else if (platelets >= 100) coagulationScore = 1;
+                else if (platelets >= 50) coagulationScore = 2;
+                else if (platelets >= 20) coagulationScore = 3;
+                else coagulationScore = 4;
+            }
+            
+            // 3. Liver System Calculation
+            const bilirubin = parseFloat(document.getElementById('bilirubin').value);
+            
+            if (!isNaN(bilirubin)) {
+                if (bilirubin < 1.2) liverScore = 0;
+                else if (bilirubin <= 1.9) liverScore = 1;
+                else if (bilirubin <= 5.9) liverScore = 2;
+                else if (bilirubin <= 11.9) liverScore = 3;
+                else liverScore = 4;
+            }
+            
+            // 4. Cardiovascular System Calculation
+            const map = parseFloat(document.getElementById('map').value);
+            const vasopressors = document.getElementById('vasopressors').value;
+            const vasopressorDose = parseFloat(document.getElementById('vasopressor-dose').value);
+            const cardiovascularSupport = document.getElementById('cardiovascular-support').value;
+            
+            // Check for mechanical support first
+            if (cardiovascularSupport !== 'none') {
+                cardiovascularScore = 4;
+            } else if (vasopressors !== 'none' && !isNaN(vasopressorDose)) {
+                if (vasopressors === 'dopamine') {
+                    if (vasopressorDose <= 20) cardiovascularScore = 2;
+                    else if (vasopressorDose <= 40) cardiovascularScore = 3;
+                    else cardiovascularScore = 4;
+                } else {
+                    // Norepinephrine or other vasopressor
+                    if (vasopressorDose <= 0.1) cardiovascularScore = 1;
+                    else if (vasopressorDose <= 0.3) cardiovascularScore = 2;
+                    else if (vasopressorDose <= 0.5) cardiovascularScore = 3;
+                    else cardiovascularScore = 4;
+                }
+            } else if (!isNaN(map)) {
+                // Use MAP if no vasopressors
+                if (map >= 70) cardiovascularScore = 0;
+                else if (map >= 60) cardiovascularScore = 1;
+                else if (map >= 50) cardiovascularScore = 2;
+                else if (map >= 40) cardiovascularScore = 3;
+                else cardiovascularScore = 4;
+            }
+            
+            // 5. Central Nervous System Calculation
+            const gcs = parseFloat(document.getElementById('gcs').value);
+            const sedation = document.getElementById('sedation').value;
+            const deliriumTreatment = document.getElementById('delirium-treatment').value;
+            
+            if (deliriumTreatment === 'yes') {
+                cnsScore = 1;
+            } else if (!isNaN(gcs)) {
+                if (gcs === 15) cnsScore = 0;
+                else if (gcs >= 13) cnsScore = 1;
+                else if (gcs >= 10) cnsScore = 2;
+                else if (gcs >= 6) cnsScore = 3;
+                else cnsScore = 4;
+            }
+            
+            // If sedated and no GCS entered, score as 0 per guidelines
+            if (sedation === 'yes' && isNaN(gcs)) {
+                cnsScore = 0;
+            }
+            
+            // 6. Renal System Calculation
+            const creatinine = parseFloat(document.getElementById('creatinine').value);
+            const urineOutput = parseFloat(document.getElementById('urine-output').value);
+            const rrt = document.getElementById('rrt').value;
+            
+            // Check RRT status first
+            if (rrt === 'continuous' || rrt === 'intermittent') {
+                renalScore = 4;
+            } else if (rrt === 'indicated-not-receiving') {
+                renalScore = 4;
+            } else if (!isNaN(creatinine)) {
+                if (creatinine < 1.2) renalScore = 0;
+                else if (creatinine <= 1.9) renalScore = 1;
+                else if (creatinine <= 3.4) renalScore = 2;
+                else if (creatinine <= 4.9) renalScore = 3;
+                else renalScore = 4;
+            } else if (!isNaN(urineOutput)) {
+                if (urineOutput >= 0.5) renalScore = 0;
+                else if (urineOutput >= 0.3) renalScore = 1;
+                else renalScore = 4; // <0.3 mL/kg/h for >6 hours
+            }
+            
+            // Update all score displays
+            updateScoreDisplay('respiratory', respiratoryScore);
+            updateScoreDisplay('coagulation', coagulationScore);
+            updateScoreDisplay('liver', liverScore);
+            updateScoreDisplay('cardiovascular', cardiovascularScore);
+            updateScoreDisplay('cns', cnsScore);
+            updateScoreDisplay('renal', renalScore);
+            
+            // Calculate and update total score
+            const totalScore = respiratoryScore + coagulationScore + liverScore + 
+                             cardiovascularScore + cnsScore + renalScore;
+            
+            document.getElementById('total-score').textContent = totalScore;
+            
+            // Update breakdown scores
+            document.getElementById('breakdown-respiratory').textContent = respiratoryScore;
+            document.getElementById('breakdown-respiratory').className = `organ-score score-${respiratoryScore}`;
+            
+            document.getElementById('breakdown-coagulation').textContent = coagulationScore;
+            document.getElementById('breakdown-coagulation').className = `organ-score score-${coagulationScore}`;
+            
+            document.getElementById('breakdown-liver').textContent = liverScore;
+            document.getElementById('breakdown-liver').className = `organ-score score-${liverScore}`;
+            
+            document.getElementById('breakdown-cardiovascular').textContent = cardiovascularScore;
+            document.getElementById('breakdown-cardiovascular').className = `organ-score score-${cardiovascularScore}`;
+            
+            document.getElementById('breakdown-cns').textContent = cnsScore;
+            document.getElementById('breakdown-cns').className = `organ-score score-${cnsScore}`;
+            
+            document.getElementById('breakdown-renal').textContent = renalScore;
+            document.getElementById('breakdown-renal').className = `organ-score score-${renalScore}`;
+        }
+        
+        function updateScoreDisplay(system, score) {
+            const element = document.getElementById(`${system}-score`);
+            element.textContent = score;
+            element.className = `organ-score score-${score}`;
+        }
+        
+        // Add event listeners to all inputs
+        const allInputs = document.querySelectorAll('input, select');
+        allInputs.forEach(input => {
+            input.addEventListener('input', calculateSofaScore);
+            input.addEventListener('change', calculateSofaScore);
+        });
+        
+        // Reset button functionality
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            // Reset all inputs
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                input.value = '';
+            });
+            
+            document.querySelectorAll('select').forEach(select => {
+                select.selectedIndex = 0;
+            });
+            
+            // Reset all scores to 0
+            calculateSofaScore();
+        });
+        
+        // Initialize calculation on page load
+        document.addEventListener('DOMContentLoaded', calculateSofaScore);
+        
+        // Create a simple service worker for offline functionality
+        const serviceWorkerCode = `
+        self.addEventListener('install', event => {
+            event.waitUntil(
+                caches.open('sofa-calculator-v1').then(cache => {
+                    return cache.addAll([
+                        './',
+                        './index.html',
+                        './manifest.json'
+                    ]);
+                })
+            );
+        });
+        
+        self.addEventListener('fetch', event => {
+            event.respondWith(
+                caches.match(event.request).then(response => {
+                    return response || fetch(event.request);
+                })
+            );
+        });
+        `;
+        
+        // Create manifest file content
+        const manifest = {
+            "name": "SOFA-2 Score Calculator",
+            "short_name": "SOFA-2 Calc",
+            "description": "Sequential Organ Failure Assessment (SOFA-2) Score Calculator",
+            "start_url": "./",
+            "display": "standalone",
+            "background_color": "#007bff",
+            "theme_color": "#007bff",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫁</text></svg>",
+                    "sizes": "any",
+                    "type": "image/svg+xml",
+                    "purpose": "any"
+                }
+            ]
+        };
+        
+        // For demonstration, we'll create these files inline
+        // In a real app, these would be separate files
+        console.log('SOFA-2 Calculator ready. PWA features enabled.');
+    </script>
+</body>
+</html>
