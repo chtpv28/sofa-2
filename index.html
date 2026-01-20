@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Калькулятор SOFA-2</title>
-    <meta name="description" content="Калькулятор оценки последовательной органной недостаточности (SOFA-2)">
+    <meta name="description" content="Калькулятор оценки органной недостаточности (SOFA-2)">
     <meta name="theme-color" content="#007bff">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -348,7 +348,6 @@
                 <ul>
                     <li>Введите значения для каждой системы органов. Общий балл SOFA-2 (0-24) будет рассчитан автоматически.</li>
                     <li>Для пропущенных значений в 1-й день оценивайте как 0 баллов. Для последовательной оценки после 1-го дня используйте последнее наблюдение.</li>
-                    <li>Баллы SOFA-2: 0 баллов (норма) до 4 баллов (тяжелая недостаточность) для каждой системы.</li>
                 </ul>
             </div>
             
@@ -360,7 +359,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="oxygenation">Соотношение PaO₂:FiO₂ (мм рт.ст.) или SpO₂:FiO₂*</label>
+                    <label for="oxygenation">Соотношение PaO₂:FiO₂ или SpO₂:FiO₂*</label>
                     <input type="number" id="oxygenation" min="0" step="1" placeholder="например, 300">
                     <div class="info-text">*Используйте SpO₂:FiO₂ только если PaO₂:FiO₂ недоступно и SpO₂ < 98%</div>
                 </div>
@@ -369,7 +368,7 @@
                     <label for="respiratory-support">Респираторная поддержка</label>
                     <select id="respiratory-support">
                         <option value="none">Нет</option>
-                        <option value="high-flow">Высокопоточная назальная кислородотерапия</option>
+                        <option value="high-flow">ВПО</option>
                         <option value="cpap">CPAP/BiPAP/НИВЛ</option>
                         <option value="invasive">ИВЛ</option>
                         <option value="ecmo-resp">ЭКМО при дыхательной недостаточности</option>
@@ -859,7 +858,7 @@
         const manifest = {
             "name": "Калькулятор SOFA-2",
             "short_name": "SOFA-2 Кальк",
-            "description": "Калькулятор оценки последовательной органной недостаточности (SOFA-2)",
+            "description": "Калькулятор последовательной оценки органной недостаточности (SOFA-2)",
             "start_url": "./",
             "display": "standalone",
             "background_color": "#007bff",
